@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Área do Fornecedor | Bambolê Baby</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      padding: 30px;
+      background: #fff8f2;
+      color: #173b75;
+    }
+
+    .container {
+      width: min(100%, 1000px);
+      margin: auto;
+    }
+
+    h1, h2 {
+      font-family: Georgia, serif;
+    }
+
+    .logo {
+      margin-bottom: 25px;
+      text-align: center;
+    }
+
+    .logo h1 {
+      font-size: 34px;
+    }
+
+    .logo p {
+      margin-top: 8px;
+      color: #bd8d68;
+    }
+
+    .caixa {
+      margin-bottom: 25px;
+      padding: 28px;
+      border-radius: 18px;
+      background: white;
+      box-shadow: 0 5px 20px rgba(23, 59, 117, 0.12);
+    }
+
+    .oculto {
+      display: none;
+    }
+
+    input, select {
+      width: 100%;
+      margin-top: 7px;
+      padding: 13px;
+      border: 1px solid #d8c8bd;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    label {
+      display: block;
+      margin-top: 14px;
+      font-weight: bold;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 13px 20px;
+      border: 0;
+      border-radius: 25px;
+      background: #173b75;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #e7a77b;
+    }
+
+    .sair {
+      float: right;
+      margin-top: 0;
+      background: #e878a8;
+    }
+
+    .mensagem {
+      min-height: 22px;
+      margin-top: 15px;
+      color: #d34f82;
+      font-weight: bold;
+    }
+
+    .produtos {
+      gap: 18px;
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    }
+
+    .produto {
+      overflow: hidden;
+      border: 1px solid #eee2d9;
+      border-radius: 14px;
+      background: white;
+    }
+
+    .produto img {
+      width: 100%;
+      height: 190px;
+      object-fit: cover;
+      background: #f3eee9;
+    }
+
+    .produto-info {
+      padding: 15px;
+    }
+
+    .produto-info p {
+      margin-top: 8px;
+    }
+
+    .produto-info strong {
+      color: #e878a8;
+    }
+
+    .excluir {
+      width: 100%;
+      margin-top: 14px;
+      padding: 9px;
+      background: #e878a8;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <div class="logo">
+      <h1>Bambolê Baby</h1>
+      <p>Área do fornecedor</p>
+    </div>
+
+    <section id="login" class="caixa">
+      <h2>Entrar</h2>
+
+      <form id="form-login">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" required>
+
+        <label for="senha">Senha</label>
+        <input id="senha" type="password" required>
+
+        <button type="submit">Entrar na área do fornecedor</button>
+      </form>
+
+      <p id="mensagem-login" class="mensagem"></p>
+    </section>
+
+    <section id="painel" class="oculto">
+      <div class="caixa">
+        <button id="botao-sair" class="sair">Sair</button>
+
+        <h2>Adicionar nova peça</h2>
+
+        <form id="form-produto">
+          <label for="nome">Nome da peça</label>
+          <input id="nome" type="text" placeholder="Ex.: Conjunto Ursinho" required>
+
+          <label for="preco">Preço</label>
+          <input id="preco" type="number" min="0" step="0.01" placeholder="75.90" required>
+
+          <label for="categoria">Categoria</label>
+          <select id="categoria" required>
+            <option value="">Escolha uma categoria</option>
+            <option value="Meninas">Meninas</option>
+            <option value="Meninos">Meninos</option>
+            <option value="Bebês">Bebês</option>
+            <option value="Brinquedos">Brinquedos</option>
+          </select>
+
+          <label for="foto">Foto da peça</label>
+          <input id="foto" type="file" accept="image/*" required>
+
+          <button type="submit">Cadastrar produto</button>
+        </form>
+
+        <p id="mensagem-produto" class="mensagem"></p>
+      </div>
+
+      <section class="caixa">
+        <h2>Minhas peças cadastradas</h2>
+        <div id="lista-produtos" class="produtos"></div>
+      </section>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    const SUPABASE_URL = "https://tksvjpdtbyhwqginvfly.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_XQP83Wm-8o-tQ6X8g-v2-Q_l2GMwac8";
+
+    const { createClient } = supabase;
+    const banco = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const login = document.querySelector("#login");
+    const painel = document.querySelector("#painel");
+    const formLogin = document.querySelector("#form-login");
+    const formProduto = document.querySelector("#form-produto");
+    const listaProdutos = document.querySelector("#lista-produtos");
+    const mensagemLogin = document.querySelector("#mensagem-login");
+    const mensagemProduto = document.querySelector("#mensagem-produto");
+
+    function mostrarPainel() {
+      login.classList.add("oculto");
+      painel.classList.remove("oculto");
+      carregarProdutos();
+    }
+
+    function mostrarLogin() {
+      painel.classList.add("oculto");
+      login.classList.remove("oculto");
+    }
+
+    async function carregarProdutos() {
+      const { data: usuario } = await banco.auth.getUser();
+
+      const { data: produtos, error } = await banco
+        .from("produtos")
+        .select("*")
+        .eq("fornecedor_id", usuario.user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        listaProdutos.innerHTML = "<p>Não foi possível carregar os produtos.</p>";
+        return;
+      }
+
+      if (produtos.length === 0) {
+        listaProdutos.innerHTML = "<p>Nenhuma peça cadastrada ainda.</p>";
+        return;
+      }
+
+      listaProdutos.innerHTML = produtos.map((produto) => `
+        <article class="produto">
+          <img src="${produto.imagem_url}" alt="${produto.nome}">
+          <div class="produto-info">
+            <h3>${produto.nome}</h3>
+            <p>${produto.categoria}</p>
+            <p><strong>R$ ${Number(produto.preco).toFixed(2).replace(".", ",")}</strong></p>
+            <button class="excluir" onclick="excluirProduto(${produto.id})">
+              Excluir peça
+            </button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    async function excluirProduto(id) {
+      const confirmar = confirm("Deseja excluir esta peça?");
+
+      if (!confirmar) return;
+
+      const { error } = await banco
+        .from("produtos")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        alert("Não foi possível excluir a peça.");
+        return;
+      }
+
+      carregarProdutos();
+    }
+
+    formLogin.addEventListener("submit", async (evento) => {
+      evento.preventDefault();
+
+      mensagemLogin.textContent = "Entrando...";
+
+      const email = document.querySelector("#email").value;
+      const senha = document.querySelector("#senha").value;
+
+      const { error } = await banco.auth.signInWithPassword({
+        email: email,
+        password: senha
+      });
+
+      if (error) {
+        mensagemLogin.textContent = "E-mail ou senha incorretos.";
+        return;
+      }
+
+      mensagemLogin.textContent = "";
+      mostrarPainel();
+    });
+
+    formProduto.addEventListener("submit", async (evento) => {
+      evento.preventDefault();
+
+      mensagemProduto.textContent = "Enviando produto...";
+
+      const { data: usuario } = await banco.auth.getUser();
+      const nome = document.querySelector("#nome").value;
+      const preco = document.querySelector("#preco").value;
+      const categoria = document.querySelector("#categoria").value;
+      const foto = document.querySelector("#foto").files[0];
+
+      const nomeArquivo = Date.now() + "-" + foto.name.replaceAll(" ", "-");
+
+      const { error: erroFoto } = await banco.storage
+        .from("produtos")
+        .upload(nomeArquivo, foto);
+
+      if (erroFoto) {
+        mensagemProduto.textContent = "Erro ao enviar a foto.";
+        return;
+      }
+
+      const { data: fotoPublica } = banco.storage
+        .from("produtos")
+        .getPublicUrl(nomeArquivo);
+
+      const { error: erroProduto } = await banco
+        .from("produtos")
+        .insert({
+          nome: nome,
+          preco: preco,
+          categoria: categoria,
+          imagem_url: fotoPublica.publicUrl,
+          fornecedor_id: usuario.user.id
+        });
+
+      if (erroProduto) {
+        mensagemProduto.textContent = "Erro ao cadastrar o produto.";
+        return;
+      }
+
+      formProduto.reset();
+      mensagemProduto.textContent = "Produto cadastrado com sucesso!";
+      carregarProdutos();
+    });
+
+    document.querySelector("#botao-sair").addEventListener("click", async () => {
+      await banco.auth.signOut();
+      mostrarLogin();
+    });
+
+    banco.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        mostrarPainel();
+      }
+    });
+  </script>
+</body>
+</html>
