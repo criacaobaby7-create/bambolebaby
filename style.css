@@ -771,3 +771,22 @@ html {
   font-weight: bold;
   cursor: pointer;
 }
+.sobre{
+    padding: 80px 10%;
+    background: #fffaf5;
+    text-align: center;
+}
+
+.sobre h2{
+    font-size: 36px;
+    color: #1f4a8a;
+    margin-bottom: 20px;
+}
+
+.sobre p{
+    max-width: 800px;
+    margin: 15px auto;
+    color: #555;
+    line-height: 1.8;
+    font-size: 18px;
+}
